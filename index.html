@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Supabase User Form</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f4f6f8;
+    display:flex;
+    justify-content:center;
+    padding:40px;
+}
+
+.container{
+    width:600px;
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+    text-align:center;
+}
+
+input,button{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+}
+
+button{
+    background:#4CAF50;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#45a049;
+}
+
+table{
+    width:100%;
+    margin-top:20px;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:8px;
+    text-align:center;
+}
+
+th{
+    background:#f2f2f2;
+}
+
+#message{
+    text-align:center;
+    color:green;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>User Registration</h2>
+
+<form id="userForm">
+<input type="text" id="name" placeholder="Enter Name" required>
+<input type="email" id="email" placeholder="Enter Email" required>
+<input type="text" id="phone" placeholder="Enter Phone Number" required>
+
+<button type="submit">Submit</button>
+</form>
+
+<p id="message"></p>
+
+<h3>Submitted Users</h3>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+</tr>
+</thead>
+
+<tbody id="userTable"></tbody>
+</table>
+
+</div>
+
+<script>
+
+
+const SUPABASE_URL = "https://vbdetnkxwwwmqhbfcplv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZGV0bmt4d3d3bXFoYmZjcGx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNTcwODAsImV4cCI6MjA5MjkzMzA4MH0.6lcAtaenjodyAxjvXiBa5s45xYV-4TEcCiYuGWj9ugg";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+// Submit Form
+document.getElementById("userForm")
+.addEventListener("submit", async (e) => {
+
+e.preventDefault();
+
+const name = document.getElementById("name").value;
+const email = document.getElementById("email").value;
+const phone = document.getElementById("phone").value;
+
+const { error } = await supabaseClient
+.from("users")
+.insert([{ name, email, phone }]);
+
+if(error){
+    document.getElementById("message").innerText =
+    "Error saving data ";
+    console.log(error);
+}else{
+    document.getElementById("message").innerText =
+    "Data saved successfully ";
+
+    document.getElementById("userForm").reset();
+    loadUsers();
+}
+
+});
+
+// Load Users
+async function loadUsers(){
+
+const { data, error } = await supabaseClient
+.from("users")
+.select("*")
+.order("created_at",{ascending:false});
+
+if(error){
+    console.log(error);
+    return;
+}
+
+const table = document.getElementById("userTable");
+table.innerHTML = "";
+
+data.forEach(user=>{
+    table.innerHTML += `
+        <tr>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>${user.phone}</td>
+        </tr>
+    `;
+});
+
+}
+
+// Load data on page open
+loadUsers();
+
+</script>
+
+</body>
+</html>
